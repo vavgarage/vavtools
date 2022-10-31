@@ -156,7 +156,7 @@ def files_search(directory : 'str', extention : 'str') -> list:
 #################
 def h_ch_request(query : 'str', ch_user_name : 'str', ch_pwd : 'str', ch_driver_path : 'str') -> 'DataFrame':
     url = 'https://{host}:8443/?database={db}&query={query}'.format(
-            host='rc1a-p5ggsxrbfqkfwcu9.mdb.yandexcloud.net',
+            host='',
             db='prod_v2',
             query=query)
     auth = {
