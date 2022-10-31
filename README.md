@@ -138,5 +138,6 @@ $ pip install vavtools
         n+=i**2
     return n
 
+>>> test_func(10**7)
 Process time: 0.0 min, 3 sec
 ```
