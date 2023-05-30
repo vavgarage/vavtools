@@ -10,8 +10,10 @@ import boto3
 import math
 import multiprocessing as mp
 from tqdm import tqdm
+import logging
+from clickhouse_driver import Client
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 
 # parallelizer
 def parallelize_dataframe(df, func):
@@ -156,7 +158,7 @@ def files_search(directory : 'str', extention : 'str') -> list:
 #################
 def h_ch_request(query : 'str', ch_user_name : 'str', ch_pwd : 'str', ch_driver_path : 'str') -> 'DataFrame':
     url = 'https://{host}:8443/?database={db}&query={query}'.format(
-            host='',
+            host='c-c9q7gl0feif25721b3sa.rw.mdb.yandexcloud.net',
             db='prod_v2',
             query=query)
     auth = {
@@ -186,6 +188,7 @@ def h_header_fix(df, new_columns = []):
 
 @execution_time
 def get_data(query, column_names, ch_user_name, ch_pwd, ch_driver_path):
+    logging.warning('Deprecated method, use get_data_native instead. Will remove in future releases')
     df = h_ch_request(query = query, 
                       ch_user_name = ch_user_name,
                       ch_pwd = ch_pwd, 
@@ -194,6 +197,36 @@ def get_data(query, column_names, ch_user_name, ch_pwd, ch_driver_path):
     for col in df.columns:
         df[col] = df[col].apply(value_fixer)
     return df
+
+
+def get_data_native(query: str, **kwargs) -> pd.DataFrame:
+    """Executes query and returns it results as dataframe
+    Column names will match the names in the query
+    kwargs will passed to Client constructor from clickhouse-driver
+    Usage example:
+    get_data_native(
+        "select 1 as value",
+        host='localhost'
+        user='user',
+        passwors='pass',
+        port=9440,
+        secure=True,
+        verify=True,
+        ca_certs='/path/to/cert.ct')
+        )
+    Args:
+        query (str): A valid sql query
+
+    Returns:
+        pd.DataFrame: Results from database
+    """
+    client = Client(**kwargs)
+    raw = client.execute(query, with_column_types=True)
+
+    data = pd.DataFrame(raw[0], columns=[x[0] for x in raw[1]])
+
+    return data
+
 
 ####################
 ###  Excel Write ###
